@@ -1,0 +1,51 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <!-- Overridable via an MSFS2024SDKPath environment variable or -p:MSFS2024SDKPath=... -->
+    <MSFS2024SDKPath Condition="'$(MSFS2024SDKPath)' == ''">C:\MSFS2024SDK\SimConnect SDK\lib\managed</MSFS2024SDKPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- WindowVideoCapture and VideoCaptureManualTest are separate sibling projects nested
+         under this folder; exclude their sources from this project's implicit compile glob. -->
+    <Compile Remove="WindowVideoCapture\**\*.cs" />
+    <Compile Remove="VideoCaptureManualTest\**\*.cs" />
+    <Compile Remove="LandingRecorder.Tests\**\*.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="SharpDX.DirectInput" Version="4.2.0" />
+    <PackageReference Include="SharpDX.MediaFoundation" Version="4.2.0" />
+    <PackageReference Include="System.Drawing.Common" Version="8.0.18" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="WindowVideoCapture\WindowVideoCapture.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Microsoft.FlightSimulator.SimConnect">
+      <HintPath>$(MSFS2024SDKPath)\Microsoft.FlightSimulator.SimConnect.dll</HintPath>
+    </Reference>
+    <!-- The managed wrapper is mixed-mode and loads the native SimConnect.dll (one folder up in the SDK)
+         from the app directory; without it, loading the wrapper fails with "module could not be found". -->
+    <None Include="$(MSFS2024SDKPath)\..\SimConnect.dll" Link="SimConnect.dll" CopyToOutputDirectory="PreserveNewest" Visible="false" />
+  </ItemGroup>
+
+  <Target Name="EnsureSimConnectSdkPresent" BeforeTargets="ResolveAssemblyReferences">
+    <Error
+      Condition="!Exists('$(MSFS2024SDKPath)\Microsoft.FlightSimulator.SimConnect.dll') Or !Exists('$(MSFS2024SDKPath)\..\SimConnect.dll')"
+      Text="MSFS 2024 SimConnect SDK not found at '$(MSFS2024SDKPath)\Microsoft.FlightSimulator.SimConnect.dll'. Install the MSFS 2024 SDK, or point the build at your install by setting an MSFS2024SDKPath environment variable, or passing -p:MSFS2024SDKPath=&quot;...&quot; to dotnet build/run, to the folder containing Microsoft.FlightSimulator.SimConnect.dll (normally '...\SimConnect SDK\lib\managed')." />
+  </Target>
+
+</Project>

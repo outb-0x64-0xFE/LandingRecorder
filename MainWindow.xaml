@@ -1,0 +1,136 @@
+<Window x:Class="LandingRecorder.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:converters="clr-namespace:LandingRecorder.Converters"
+        xmlns:vm="clr-namespace:LandingRecorder.ViewModels"
+        mc:Ignorable="d"
+        Title="Landing Recorder" Height="760" Width="1100"
+        WindowStartupLocation="CenterScreen"
+        Loaded="Window_Loaded"
+        Background="#07111f">
+    <Window.Resources>
+        <converters:BoolToBrushConverter x:Key="BoolToBrushConverter" />
+        <converters:HexToBrushConverter x:Key="HexToBrushConverter" />
+        <converters:VolumeToTextDecorationsConverter x:Key="VolumeToTextDecorationsConverter" />
+    </Window.Resources>
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
+            <Border Background="#11223b" CornerRadius="8" Padding="8,4" Margin="0,0,8,0">
+                <TextBlock Text="{Binding StatusText}" Foreground="#4ad7ff" FontWeight="SemiBold" FontSize="12" />
+            </Border>
+            <Border Background="#11223b" CornerRadius="8" Padding="8,4" Margin="0,0,16,0">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <Ellipse Width="8" Height="8" Fill="{Binding IsSimConnected, Converter={StaticResource BoolToBrushConverter}}" Margin="0,0,6,0" />
+                    <TextBlock Text="{Binding SimConnectStatusText}" Foreground="#eaf4ff" FontWeight="SemiBold" FontSize="12" />
+                </StackPanel>
+            </Border>
+
+            <Button Content="{Binding RecordButtonLabel}" Width="100" Height="28" Margin="0,0,8,0" Command="{Binding ToggleRecordingCommand}" IsEnabled="{Binding IsSimConnected}" />
+            <Border Background="#12233c" CornerRadius="8" Padding="8,4" Margin="0,0,8,0">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <CheckBox IsChecked="{Binding AutoCaptureEnabled, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,0,6,0" />
+                    <TextBlock Text="{Binding AutoCaptureLabel}" Foreground="#eaf4ff" VerticalAlignment="Center" FontSize="12" />
+                </StackPanel>
+            </Border>
+            <Button Content="Clean" Width="70" Height="28" Margin="0,0,8,0" Command="{Binding ResetCommand}" />
+            <Button x:Name="SaveButton" Content="Save" Width="70" Height="28" Margin="0,0,8,0" Click="SaveButton_Click" IsEnabled="{Binding CanSave}" />
+            <Button x:Name="LoadButton" Content="Load" Width="70" Height="28" Margin="0,0,16,0" Click="LoadButton_Click" IsEnabled="{Binding CanLoad}" />
+            <Button x:Name="SettingsButton" Content="Settings" Width="80" Height="28" Click="SettingsButton_Click" IsEnabled="{Binding CanOpenSettings}" />
+        </StackPanel>
+
+        <Grid Grid.Row="1" Margin="0,10,0,0" ClipToBounds="True">
+            <Border Background="#0b1220" BorderBrush="#1f3150" BorderThickness="1" CornerRadius="16">
+                <MediaElement x:Name="VideoPlayer" Source="{Binding VideoSource}" LoadedBehavior="Manual" UnloadedBehavior="Manual" ScrubbingEnabled="True" Stretch="Uniform" Volume="0.5" MediaOpened="VideoPlayer_MediaOpened" MediaEnded="VideoPlayer_MediaEnded" />
+            </Border>
+            <Border BorderBrush="#1f3150" BorderThickness="1" CornerRadius="16">
+                <Canvas x:Name="GraphCanvas" Background="Transparent"
+                        MouseLeftButtonDown="GraphCanvas_MouseLeftButtonDown" MouseMove="GraphCanvas_MouseMove" MouseLeftButtonUp="GraphCanvas_MouseLeftButtonUp"
+                        MouseRightButtonDown="GraphCanvas_MouseRightButtonDown" MouseRightButtonUp="GraphCanvas_MouseRightButtonUp" />
+            </Border>
+
+            <Border x:Name="LegendPanel" Background="#CC0B1220" BorderBrush="#1f3150" BorderThickness="1" CornerRadius="10"
+                    HorizontalAlignment="Left" VerticalAlignment="Top" SizeChanged="LegendPanel_SizeChanged">
+                <StackPanel>
+                    <Grid Background="#15223d" Cursor="SizeAll"
+                          MouseLeftButtonDown="LegendCaption_MouseLeftButtonDown" MouseMove="LegendCaption_MouseMove" MouseLeftButtonUp="LegendCaption_MouseLeftButtonUp">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="Data &amp; Scale" Foreground="#eaf4ff" FontWeight="SemiBold" Margin="10,6,10,6" VerticalAlignment="Center" />
+                        <TextBlock x:Name="LegendCollapseGlyph" Grid.Column="1" Text="&#9660;" Foreground="#eaf4ff" FontWeight="Bold" FontSize="11"
+                                   Margin="6,6,10,6" VerticalAlignment="Center" Cursor="Hand"
+                                   MouseLeftButtonDown="LegendCollapseToggle_MouseLeftButtonDown" />
+                    </Grid>
+                    <StackPanel x:Name="LegendBody" Margin="10,8,10,8" Grid.IsSharedSizeScope="True">
+                        <ItemsControl ItemsSource="{Binding PlotLines}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="{x:Type vm:PlotLineViewModel}">
+                                    <Grid Margin="0,0,0,4">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" SharedSizeGroup="LegendSwatch" />
+                                            <ColumnDefinition Width="Auto" MinWidth="50" SharedSizeGroup="LegendName" />
+                                            <ColumnDefinition Width="Auto" MinWidth="90" SharedSizeGroup="LegendRange" />
+                                            <ColumnDefinition Width="Auto" SharedSizeGroup="LegendCheck" />
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.Style>
+                                            <Style TargetType="Grid">
+                                                <Setter Property="ToolTip" Value="{Binding Name}" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsAvailable}" Value="False">
+                                                        <Setter Property="Opacity" Value="0.4" />
+                                                        <Setter Property="ToolTip" Value="{Binding UnavailableReason}" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Grid.Style>
+                                        <Rectangle Grid.Column="0" Width="16" Height="3" VerticalAlignment="Center" Margin="0,0,8,0"
+                                                   Fill="{Binding Color, Converter={StaticResource HexToBrushConverter}}" />
+                                        <TextBlock Grid.Column="1" Text="{Binding ShortName}" Foreground="#eaf4ff" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                        <TextBlock Grid.Column="2" Text="{Binding RangeText}" Foreground="#eaf4ff" VerticalAlignment="Center" Margin="0,0,8,0"
+                                                   Background="Transparent" Cursor="SizeNS" MouseWheel="PlotLineRange_MouseWheel" />
+                                        <CheckBox Grid.Column="3" IsChecked="{Binding IsVisible, Mode=TwoWay}" VerticalAlignment="Center" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <!-- Touchdown (SIM ON GROUND): a marker of a moment, not a scalable series, so no range column. -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="LegendSwatch" />
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="LegendName" />
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="LegendRange" />
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="LegendCheck" />
+                            </Grid.ColumnDefinitions>
+                            <Line Grid.Column="0" X1="0" Y1="1.5" X2="16" Y2="1.5" Stroke="Yellow" StrokeThickness="2" StrokeDashArray="2,1.5" VerticalAlignment="Center" Margin="0,0,8,0" />
+                            <TextBlock Grid.Column="1" Text="Touchdown" Foreground="#eaf4ff" VerticalAlignment="Center" Margin="0,0,8,0" />
+                            <CheckBox Grid.Column="3" IsChecked="{Binding TouchdownVisible, Mode=TwoWay}" VerticalAlignment="Center" />
+                        </Grid>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- Topmost: right-click-drag draws a selection rectangle here; releasing shows a
+                 2x-scaled live magnified copy of that region overlapping the original video. -->
+            <Canvas x:Name="MagnifierCanvas" />
+        </Grid>
+
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,10,0,0">
+            <Button Content="Play" Width="70" Height="28" Margin="0,0,8,0" Command="{Binding PlayVideoCommand}" />
+            <Button Content="Pause" Width="70" Height="28" Margin="0,0,20,0" Command="{Binding PauseVideoCommand}" />
+            <TextBlock Text="Vol" Foreground="#eaf4ff" VerticalAlignment="Center" Margin="0,0,8,0"
+                       TextDecorations="{Binding Volume, ElementName=VideoPlayer, Converter={StaticResource VolumeToTextDecorationsConverter}}" />
+            <Slider Width="100" Minimum="0" Maximum="1" SmallChange="0.05" LargeChange="0.1" VerticalAlignment="Center"
+                    Value="{Binding Volume, ElementName=VideoPlayer, Mode=TwoWay}" />
+        </StackPanel>
+    </Grid>
+</Window>

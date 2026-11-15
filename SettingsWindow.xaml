@@ -1,0 +1,374 @@
+<Window x:Class="LandingRecorder.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:converters="clr-namespace:LandingRecorder.Converters"
+        xmlns:vm="clr-namespace:LandingRecorder.ViewModels"
+        Title="Settings" Width="1040" Height="660" MinWidth="900" MinHeight="560"
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
+        Background="#07111f">
+    <Window.Resources>
+        <converters:HexToBrushConverter x:Key="HexToBrushConverter" />
+        <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
+        <Style TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#eaf4ff" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Margin" Value="0,0,12,8" />
+        </Style>
+        <Style x:Key="SectionHeader" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#4ad7ff" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Margin" Value="0,0,0,8" />
+        </Style>
+        <Style x:Key="Hint" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#8fa6c2" />
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="Margin" Value="0,0,0,8" />
+        </Style>
+        <Style TargetType="TextBox">
+            <Setter Property="Margin" Value="0,0,0,8" />
+            <Setter Property="Padding" Value="2" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+        </Style>
+        <Style TargetType="ComboBox">
+            <Setter Property="Margin" Value="0,0,0,8" />
+        </Style>
+        <Style TargetType="Button">
+            <Setter Property="Height" Value="24" />
+            <Setter Property="Padding" Value="8,0" />
+        </Style>
+        <Style TargetType="Border" x:Key="Section">
+            <Setter Property="Background" Value="#12233c" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Padding" Value="12,10,12,4" />
+            <Setter Property="Margin" Value="0,0,0,10" />
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="340" />
+            <ColumnDefinition Width="12" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <!-- General settings -->
+        <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                <Border Style="{StaticResource Section}">
+                    <StackPanel>
+                        <TextBlock Text="Joystick" Style="{StaticResource SectionHeader}" />
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="140" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Device" />
+                            <ComboBox Grid.Column="1"
+                                      ItemsSource="{Binding JoystickOptions}" SelectedIndex="{Binding SelectedJoystickIndex, Mode=TwoWay}" />
+                        </Grid>
+                        <TextBlock Style="{StaticResource Hint}" Text="Use its axes in plot lines via a variable with source 'Joystick axis'; each axis is shown in percent or in degrees with its own max deflection." />
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource Section}">
+                    <StackPanel>
+                        <TextBlock Text="Video" Style="{StaticResource SectionHeader}" />
+                        <CheckBox IsChecked="{Binding VideoRecordingEnabled, Mode=TwoWay}" Margin="0,0,0,8">
+                            <TextBlock Text="Record video of the MSFS window" Margin="0" />
+                        </CheckBox>
+                        <Grid IsEnabled="{Binding VideoRecordingEnabled}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="140" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="MSFS process name" />
+                            <TextBox Grid.Column="1" Text="{Binding SimProcessName, UpdateSourceTrigger=PropertyChanged}"
+                                     ToolTip="Process name (exact) or part of the main window title" />
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource Section}">
+                    <StackPanel>
+                        <TextBlock Text="Auto capture" Style="{StaticResource SectionHeader}" />
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="140" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Start below AGL (ft)" />
+                            <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding AutoStartHeightText, UpdateSourceTrigger=PropertyChanged}" />
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Stop after touchdown (s)" />
+                            <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding AutoStopDelayText, UpdateSourceTrigger=PropertyChanged}" />
+                        </Grid>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Plot lines -->
+        <Border Grid.Column="2" Style="{StaticResource Section}" Padding="12,10,12,10">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="180" />
+                    <ColumnDefinition Width="12" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.ColumnSpan="3" Text="Plot lines" Style="{StaticResource SectionHeader}" />
+
+                <!-- Line list -->
+                <DockPanel Grid.Row="1" Grid.Column="0">
+                    <UniformGrid DockPanel.Dock="Bottom" Rows="1" Margin="0,8,0,0">
+                        <Button Content="Add" Command="{Binding AddPlotLineCommand}" Margin="0,0,4,0" Padding="0" />
+                        <Button Content="Remove" Command="{Binding RemovePlotLineCommand}" Margin="0,0,4,0" Padding="0" />
+                        <Button Content="▲" Command="{Binding MovePlotLineUpCommand}" Margin="0,0,4,0" Padding="0" ToolTip="Move up" />
+                        <Button Content="▼" Command="{Binding MovePlotLineDownCommand}" Padding="0" ToolTip="Move down" />
+                    </UniformGrid>
+                    <ListBox ItemsSource="{Binding PlotLines}" SelectedItem="{Binding SelectedPlotLine, Mode=TwoWay}"
+                             Background="#0b1220" BorderBrush="#1f3150">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate DataType="{x:Type vm:PlotLineEditorViewModel}">
+                                <StackPanel Orientation="Horizontal">
+                                    <Rectangle Width="16" Height="3" Margin="0,0,8,0" VerticalAlignment="Center"
+                                               Fill="{Binding Color, Converter={StaticResource HexToBrushConverter}}" />
+                                    <TextBlock Text="{Binding Name}" Margin="0" Foreground="White" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </DockPanel>
+
+                <!-- Selected line editor -->
+                <ScrollViewer Grid.Row="1" Grid.Column="2" VerticalScrollBarVisibility="Auto"
+                              Visibility="{Binding HasSelectedPlotLine, Converter={StaticResource BoolToVisibility}}">
+                    <StackPanel DataContext="{Binding SelectedPlotLine}" Margin="0,0,4,0">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="110" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <TextBlock Grid.Row="0" Text="Name" />
+                            <TextBox Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" />
+                            <TextBlock Grid.Row="1" Text="Short name" />
+                            <TextBox Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Text="{Binding ShortName, UpdateSourceTrigger=PropertyChanged}"
+                                     ToolTip="Shown in the Data &amp; Scale legend and the cursor value label" />
+                            <TextBlock Grid.Row="2" Text="Color" />
+                            <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding Color, UpdateSourceTrigger=PropertyChanged}" ToolTip="#RRGGBB or #AARRGGBB" />
+                            <!-- Swatch button opening the palette popup. Hit-testing is off while the popup is open so the
+                                 click that closes it (StaysOpen=False) can't immediately re-toggle it open. -->
+                            <ToggleButton x:Name="ColorPopupToggle" Grid.Row="2" Grid.Column="2" Margin="8,0,0,8" Cursor="Hand"
+                                          IsChecked="{Binding IsOpen, ElementName=ColorPopup, Mode=TwoWay}" ToolTip="Pick a color">
+                                <ToggleButton.Style>
+                                    <Style TargetType="ToggleButton">
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="ToggleButton">
+                                                    <Border x:Name="Swatch" Width="24" Height="18" CornerRadius="3" BorderBrush="#1f3150" BorderThickness="1"
+                                                            Background="{Binding Color, Converter={StaticResource HexToBrushConverter}}" />
+                                                    <ControlTemplate.Triggers>
+                                                        <Trigger Property="IsMouseOver" Value="True">
+                                                            <Setter TargetName="Swatch" Property="BorderBrush" Value="#eaf4ff" />
+                                                        </Trigger>
+                                                    </ControlTemplate.Triggers>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsOpen, ElementName=ColorPopup}" Value="True">
+                                                <Setter Property="IsHitTestVisible" Value="False" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </ToggleButton.Style>
+                            </ToggleButton>
+                            <Popup x:Name="ColorPopup" PlacementTarget="{Binding ElementName=ColorPopupToggle}" Placement="Bottom"
+                                   HorizontalOffset="-200" StaysOpen="False" AllowsTransparency="True" PopupAnimation="Fade">
+                                <Border Background="#12233c" BorderBrush="#1f3150" BorderThickness="1" CornerRadius="6" Padding="6">
+                                    <ItemsControl ItemsSource="{x:Static vm:PlotLineEditorViewModel.ColorPalette}">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <UniformGrid Columns="8" />
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Button Click="PaletteColor_Click" ToolTip="{Binding}" Cursor="Hand" Margin="2">
+                                                    <Button.Template>
+                                                        <ControlTemplate TargetType="Button">
+                                                            <Border x:Name="Swatch" Width="22" Height="22" CornerRadius="3" BorderBrush="#1f3150" BorderThickness="1"
+                                                                    Background="{Binding Converter={StaticResource HexToBrushConverter}}" />
+                                                            <ControlTemplate.Triggers>
+                                                                <Trigger Property="IsMouseOver" Value="True">
+                                                                    <Setter TargetName="Swatch" Property="BorderBrush" Value="#eaf4ff" />
+                                                                    <Setter TargetName="Swatch" Property="BorderThickness" Value="2" />
+                                                                </Trigger>
+                                                            </ControlTemplate.Triggers>
+                                                        </ControlTemplate>
+                                                    </Button.Template>
+                                                </Button>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </Border>
+                            </Popup>
+                        </Grid>
+
+                        <DockPanel Margin="0,4,0,6">
+                            <Button DockPanel.Dock="Right" Content="Add variable" Command="{Binding AddVariableCommand}" />
+                            <TextBlock Text="Variables" Style="{StaticResource SectionHeader}" Margin="0" VerticalAlignment="Center" />
+                        </DockPanel>
+                        <Grid Margin="0,0,0,4">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="32" />
+                                <ColumnDefinition Width="115" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="110" />
+                                <ColumnDefinition Width="32" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="1" Text="Source" Style="{StaticResource Hint}" Margin="0,0,0,2" />
+                            <TextBlock Grid.Column="2" Text="Simvar name / joystick axis" Style="{StaticResource Hint}" Margin="8,0,0,2" />
+                            <TextBlock Grid.Column="3" Text="Units" Style="{StaticResource Hint}" Margin="8,0,0,2" />
+                        </Grid>
+                        <ItemsControl ItemsSource="{Binding Variables}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="{x:Type vm:VariableEditorViewModel}">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="32" />
+                                            <ColumnDefinition Width="115" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="110" />
+                                            <ColumnDefinition Width="32" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="{Binding Label}" Foreground="#4ad7ff" FontWeight="SemiBold" />
+                                        <ComboBox Grid.Column="1" ItemsSource="{x:Static vm:VariableEditorViewModel.SourceOptions}"
+                                                  SelectedIndex="{Binding SourceIndex, Mode=TwoWay}" />
+
+                                        <!-- SimVar source: name + units -->
+                                        <TextBox Grid.Column="2" Margin="8,0,0,8" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"
+                                                 Visibility="{Binding IsSimVar, Converter={StaticResource BoolToVisibility}}"
+                                                 ToolTip="SimConnect simvar name, e.g. PLANE PITCH DEGREES" />
+                                        <TextBox Grid.Column="3" Margin="8,0,0,8" Text="{Binding Units, UpdateSourceTrigger=PropertyChanged}"
+                                                 Visibility="{Binding IsSimVar, Converter={StaticResource BoolToVisibility}}"
+                                                 ToolTip="SimConnect units, e.g. degrees, feet, feet/minute" />
+
+                                        <!-- Joystick axis source: axis picker (axes the selected joystick lacks are disabled)
+                                             + display scale; recorded as percent regardless, so the scale is display-only. -->
+                                        <Grid Grid.Column="2" Margin="8,0,0,0"
+                                              Visibility="{Binding IsJoystickAxis, Converter={StaticResource BoolToVisibility}}">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="90" />
+                                            </Grid.ColumnDefinitions>
+                                            <ComboBox Grid.Column="0"
+                                                      ItemsSource="{Binding AxisOptions}" DisplayMemberPath="Label"
+                                                      SelectedValuePath="Axis" SelectedValue="{Binding Axis, Mode=TwoWay}"
+                                                      ToolTip="Axis of the joystick selected in the Joystick section">
+                                                <ComboBox.ItemContainerStyle>
+                                                    <Style TargetType="ComboBoxItem">
+                                                        <Setter Property="IsEnabled" Value="{Binding IsAvailable}" />
+                                                    </Style>
+                                                </ComboBox.ItemContainerStyle>
+                                            </ComboBox>
+                                            <ComboBox Grid.Column="1" Margin="8,0,0,8"
+                                                      ItemsSource="{x:Static vm:VariableEditorViewModel.ScaleOptions}"
+                                                      SelectedIndex="{Binding ScaleIndex, Mode=TwoWay}"
+                                                      ToolTip="Percent: -100..100. Degrees: -max..max deflection." />
+                                        </Grid>
+                                        <TextBlock Grid.Column="3" Margin="8,0,0,8" Text="±100 %" Style="{StaticResource Hint}" VerticalAlignment="Center"
+                                                   Visibility="{Binding ShowPercentRange, Converter={StaticResource BoolToVisibility}}" />
+                                        <DockPanel Grid.Column="3" Margin="8,0,0,0" ToolTip="Max deflection in degrees (axis value = ±this)"
+                                                   Visibility="{Binding ShowMaxDeflection, Converter={StaticResource BoolToVisibility}}">
+                                            <TextBlock DockPanel.Dock="Left" Text="±" Foreground="#eaf4ff" VerticalAlignment="Center" Margin="0,0,4,8" />
+                                            <TextBlock DockPanel.Dock="Right" Text="° max" Foreground="#eaf4ff" VerticalAlignment="Center" Margin="4,0,0,8" />
+                                            <TextBox Text="{Binding MaxDeflectionText, UpdateSourceTrigger=PropertyChanged}" />
+                                        </DockPanel>
+
+                                        <Button Grid.Column="4" Content="✕" Margin="6,0,0,8" Padding="0" Command="{Binding RemoveCommand}" ToolTip="Remove variable" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <TextBlock Style="{StaticResource Hint}" Text="{Binding VariablesHint}" />
+
+                        <Grid Margin="0,4,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="110" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="16" />
+                                <ColumnDefinition Width="90" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <TextBlock Grid.Row="0" Text="Formula" />
+                            <TextBox Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="4" FontFamily="Consolas"
+                                     Text="{Binding Formula, UpdateSourceTrigger=PropertyChanged}" />
+                            <TextBlock Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="4" Style="{StaticResource Hint}"
+                                       Text="Operators + - * / ^ ( ); functions sqrt abs sin cos tan log (natural) log10 log2; constants pi e; use '.' for decimals (e.g. 0.5). Used for display only; raw values are recorded." />
+
+                            <TextBlock Grid.Row="2" Text="Default min" />
+                            <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding MinText, UpdateSourceTrigger=PropertyChanged}" />
+                            <TextBlock Grid.Row="2" Grid.Column="3" Text="Default max" />
+                            <TextBox Grid.Row="2" Grid.Column="4" Text="{Binding MaxText, UpdateSourceTrigger=PropertyChanged}" />
+
+                            <TextBlock Grid.Row="3" Text="Scroll scaling" />
+                            <ComboBox Grid.Row="3" Grid.Column="1" ItemsSource="{x:Static vm:PlotLineEditorViewModel.ScaleModeOptions}"
+                                      SelectedIndex="{Binding ScaleModeIndex, Mode=TwoWay}" />
+                            <TextBlock Grid.Row="3" Grid.Column="3" Text="Decimals" />
+                            <TextBox Grid.Row="3" Grid.Column="4" Text="{Binding DecimalsText, UpdateSourceTrigger=PropertyChanged}" />
+
+                            <TextBlock Grid.Row="4" Text="Display unit" />
+                            <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding Unit, UpdateSourceTrigger=PropertyChanged}"
+                                     ToolTip="Suffix shown after values in the legend and labels, e.g. °, ft, fpm" />
+                        </Grid>
+                    </StackPanel>
+                </ScrollViewer>
+            </Grid>
+        </Border>
+
+        <TextBlock Grid.Row="1" Grid.ColumnSpan="3" Text="{Binding ErrorText}" Foreground="IndianRed" TextWrapping="Wrap" Margin="0,0,0,8">
+            <TextBlock.Style>
+                <Style TargetType="TextBlock">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding IsValid}" Value="True">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </TextBlock.Style>
+        </TextBlock>
+
+        <StackPanel Grid.Row="2" Grid.ColumnSpan="3" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Content="OK" Width="80" Height="28" Margin="0,0,8,0" IsDefault="True"
+                    IsEnabled="{Binding IsValid}" Click="OkButton_Click" />
+            <Button Content="Cancel" Width="80" Height="28" IsCancel="True" />
+        </StackPanel>
+    </Grid>
+</Window>

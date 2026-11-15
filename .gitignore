@@ -1,0 +1,49 @@
+# Build output (all projects: app, WindowVideoCapture, VideoCaptureManualTest, LandingRecorder.Tests)
+[Bb]in/
+[Oo]bj/
+publish/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa][Rr][Mm]64/
+*.nupkg
+*.snupkg
+
+# Test results / coverage
+TestResults/
+[Tt]est[Rr]esult*/
+*.trx
+coverage*.json
+coverage*.xml
+*.coverage
+
+# Runtime output written next to the exe (in case it's run from elsewhere)
+/app.log
+/app-*.log
+/settings.json
+/flight-*.json
+/*.mp4
+old-format-backup/
+
+# IDE / editor state
+.vs/
+.idea/
+*.user
+*.suo
+*.rsuser
+*.userprefs
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# Claude Code local state (settings.local.json, scheduled_tasks.lock, ...)
+.claude/
+
+# OS files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
