@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Globalization;
+using System.IO;
 using System.Windows.Input;
 using LandingRecorder.Models;
 using LandingRecorder.Mvvm;
@@ -24,6 +25,7 @@ public sealed class SettingsViewModel : ObservableObject
     private string _simProcessName;
     private string _autoStartHeightText;
     private string _autoStopDelayText;
+    private string _recordingsFolder;
     private string? _errorText;
     private PlotLineEditorViewModel? _selectedPlotLine;
 
@@ -59,6 +61,7 @@ public sealed class SettingsViewModel : ObservableObject
         _simProcessName = current.SimProcessName;
         _autoStartHeightText = Format(current.AutoStartHeightFeet);
         _autoStopDelayText = Format(current.AutoStopDelayAfterTouchdownSeconds);
+        _recordingsFolder = current.GetRecordingsFolder();
 
         foreach (var line in current.PlotLines)
         {
@@ -168,6 +171,13 @@ public sealed class SettingsViewModel : ObservableObject
         set { if (SetProperty(ref _autoStopDelayText, value)) Validate(); }
     }
 
+    /// <summary>Shown resolved (the executable's folder when unset); empty also means the executable's folder.</summary>
+    public string RecordingsFolder
+    {
+        get => _recordingsFolder;
+        set { if (SetProperty(ref _recordingsFolder, value)) Validate(); }
+    }
+
     public string? ErrorText
     {
         get => _errorText;
@@ -200,6 +210,7 @@ public sealed class SettingsViewModel : ObservableObject
             SimProcessName = SimProcessName.Trim(),
             AutoStartHeightFeet = Parse(AutoStartHeightText),
             AutoStopDelayAfterTouchdownSeconds = Parse(AutoStopDelayText),
+            RecordingsFolder = ToStoredRecordingsFolder(RecordingsFolder),
             PlotLines = PlotLines.Select(line => line.ToSettings()).ToList(),
         };
     }
@@ -213,7 +224,21 @@ public sealed class SettingsViewModel : ObservableObject
                 ? "Start height must be a positive number of feet."
             : !TryParse(AutoStopDelayText, out var delay) || delay < 0
                 ? "Stop delay must be zero or a positive number of seconds."
+            : !string.IsNullOrWhiteSpace(RecordingsFolder) && !IsValidFolderPath(RecordingsFolder.Trim())
+                ? "Recordings folder must be a full path, e.g. D:\\Recordings."
             : ValidatePlotLines();
+    }
+
+    private static bool IsValidFolderPath(string path) =>
+        Path.IsPathFullyQualified(path) && path.IndexOfAny(Path.GetInvalidPathChars()) < 0;
+
+    /// <summary>The executable's folder (or empty) is stored as unset, so it keeps following the app if it's moved.</summary>
+    private static string? ToStoredRecordingsFolder(string folder)
+    {
+        folder = folder.Trim();
+        return folder.Length == 0 || string.Equals(Path.TrimEndingDirectorySeparator(Path.GetFullPath(folder)), Path.TrimEndingDirectorySeparator(AppContext.BaseDirectory), StringComparison.OrdinalIgnoreCase)
+            ? null
+            : folder;
     }
 
     private string? ValidatePlotLines()

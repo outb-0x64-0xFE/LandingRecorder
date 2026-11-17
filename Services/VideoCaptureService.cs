@@ -119,11 +119,11 @@ public sealed class VideoCaptureService : IDisposable
     [return: System.Runtime.InteropServices.MarshalAs(System.Runtime.InteropServices.UnmanagedType.Bool)]
     private static extern bool IsWindow(IntPtr hWnd);
 
-    /// <summary>Timestamped recording file path next to the executable, e.g. flight-20261115-143000.mp4.</summary>
-    public static string CreateOutputPath(string extension) =>
-        Path.Combine(AppContext.BaseDirectory, $"flight-{DateTime.Now:yyyyMMdd-HHmmss}{extension}");
+    /// <summary>Timestamped recording file path in <paramref name="folder"/>, e.g. flight-20261115-143000.mp4.</summary>
+    public static string CreateOutputPath(string folder, string extension) =>
+        Path.Combine(folder, $"flight-{DateTime.Now:yyyyMMdd-HHmmss}{extension}");
 
-    public string? Start(int framesPerSecond = 60)
+    public string? Start(string folder, int framesPerSecond = 60)
     {
         if (_videoRecorder is null || _videoRecorder.IsRecording)
         {
@@ -132,7 +132,7 @@ public sealed class VideoCaptureService : IDisposable
 
         try
         {
-            var outputPath = CreateOutputPath(".mp4");
+            var outputPath = CreateOutputPath(folder, ".mp4");
             _videoRecorder.Start(outputPath, framesPerSecond);
             AppLogger.WriteLine($"Video recording started: {outputPath}");
             return outputPath;

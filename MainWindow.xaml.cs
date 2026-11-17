@@ -155,6 +155,7 @@ public partial class MainWindow : Window
             Filter = "JSON files (*.json)|*.json|All files (*.*)|*.*",
             DefaultExt = "json",
             FileName = "pitch-data.json",
+            InitialDirectory = _viewModel.RecordingsFolderForDialogs,
             Title = "Save pitch data"
         };
 
@@ -197,7 +198,8 @@ public partial class MainWindow : Window
         {
             Filter = "JSON files (*.json)|*.json|All files (*.*)|*.*",
             DefaultExt = "json",
-            Title = "Load pitch data"
+            Title = "Load pitch data",
+            InitialDirectory = _viewModel.RecordingsFolderForDialogs,
         };
 
         if (dialog.ShowDialog(this) != true)

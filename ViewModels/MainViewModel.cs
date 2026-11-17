@@ -114,6 +114,10 @@ public sealed class MainViewModel : ObservableObject, IDisposable
 
     public bool CanOpenSettings => !IsRecording;
 
+    /// <summary>Folder the Load/Save dialogs open in: the configured recordings folder, if it exists.</summary>
+    public string? RecordingsFolderForDialogs =>
+        Directory.Exists(_settings.GetRecordingsFolder()) ? _settings.GetRecordingsFolder() : null;
+
     // --- Graph data (read by View's DrawGraph) ---
     public IReadOnlyList<DataPoint> Points => _points;
 
@@ -349,12 +353,13 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         _groundContactTimeUtc = null;
         EnsureJoystickForRecording();
         SetDataVariables(GetLiveRecordingVariables());
-        StartVideoCapture();
+        var recordingsFolder = EnsureRecordingsFolder();
+        StartVideoCapture(recordingsFolder);
         // The data JSON is auto-saved on stop: as a sidecar next to the .mp4 when video is being
         // captured, otherwise (video disabled in settings, or capture failed to start) on its own.
         _recordingDataPath = _videoOutputPath is not null
             ? Path.ChangeExtension(_videoOutputPath, ".json")
-            : VideoCaptureService.CreateOutputPath(".json");
+            : VideoCaptureService.CreateOutputPath(recordingsFolder, ".json");
         _startTime = DateTime.UtcNow;
         OnPropertyChanged(nameof(CanSave));
         GraphInvalidated?.Invoke(this, EventArgs.Empty);
@@ -486,7 +491,26 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         }
     }
 
-    private void StartVideoCapture()
+    /// <summary>
+    /// Creates the configured recordings folder if needed. If that fails (e.g. a removed drive), falls back to
+    /// the executable's folder so the recording isn't lost.
+    /// </summary>
+    private string EnsureRecordingsFolder()
+    {
+        var folder = _settings.GetRecordingsFolder();
+        try
+        {
+            Directory.CreateDirectory(folder);
+            return folder;
+        }
+        catch (Exception ex)
+        {
+            AppLogger.WriteLine($"Recordings folder '{folder}' is unavailable ({ex.Message}); saving next to the executable instead.");
+            return AppContext.BaseDirectory;
+        }
+    }
+
+    private void StartVideoCapture(string recordingsFolder)
     {
         // Never carry a previous recording's path over: StartRecording derives the data JSON path from it,
         // so a stale value would make a recording whose video failed overwrite the previous recording's JSON.
@@ -499,7 +523,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
             return;
         }
 
-        var outputPath = _videoCaptureService.Start(60);
+        var outputPath = _videoCaptureService.Start(recordingsFolder, 60);
         if (outputPath is not null)
         {
             _videoOutputPath = outputPath;

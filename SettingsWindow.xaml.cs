@@ -20,6 +20,25 @@ public partial class SettingsWindow : Window
         ColorPopup.IsOpen = false;
     }
 
+    private void BrowseRecordingsFolder_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is not SettingsViewModel settings)
+        {
+            return;
+        }
+
+        var dialog = new Microsoft.Win32.OpenFolderDialog
+        {
+            Title = "Folder for recordings",
+            InitialDirectory = System.IO.Directory.Exists(settings.RecordingsFolder) ? settings.RecordingsFolder : AppContext.BaseDirectory,
+        };
+
+        if (dialog.ShowDialog(this) == true)
+        {
+            settings.RecordingsFolder = dialog.FolderName;
+        }
+    }
+
     private void OkButton_Click(object sender, RoutedEventArgs e)
     {
         if (DataContext is SettingsViewModel { IsValid: true })

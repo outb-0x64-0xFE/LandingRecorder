@@ -74,6 +74,15 @@ public class ModelTests
     }
 
     [Fact]
+    public void RecordingsFolderDefaultsToExecutableFolder()
+    {
+        Assert.Null(new AppSettings().RecordingsFolder);
+        Assert.Equal(AppContext.BaseDirectory, new AppSettings().GetRecordingsFolder());
+        Assert.Equal(AppContext.BaseDirectory, new AppSettings { RecordingsFolder = "  " }.GetRecordingsFolder());
+        Assert.Equal(@"D:\Recordings", new AppSettings { RecordingsFolder = @"D:\Recordings" }.GetRecordingsFolder());
+    }
+
+    [Fact]
     public void SettingsRoundTripKeepsPlotLines()
     {
         var original = new AppSettings

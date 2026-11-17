@@ -23,6 +23,16 @@ public sealed record AppSettings
     /// <summary>Auto capture stops this many seconds after touchdown.</summary>
     public double AutoStopDelayAfterTouchdownSeconds { get; init; } = 10;
 
+    /// <summary>
+    /// Folder recordings are auto-saved to (and the Load/Save dialogs open in); null or empty means the
+    /// executable's folder. Kept unset by default rather than storing the exe path, so moving the app moves it too.
+    /// </summary>
+    public string? RecordingsFolder { get; init; }
+
+    /// <summary><see cref="RecordingsFolder"/>, or the executable's folder when it isn't set.</summary>
+    public string GetRecordingsFolder() =>
+        string.IsNullOrWhiteSpace(RecordingsFolder) ? AppContext.BaseDirectory : RecordingsFolder;
+
     /// <summary>Plotted lines; the union of their variables is what gets requested from SimConnect and recorded.</summary>
     public IReadOnlyList<PlotLineSettings> PlotLines { get; init; } = DefaultPlotLines;
 

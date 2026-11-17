@@ -136,7 +136,7 @@ During recording, the app stores the values of every variable used by the config
 
 ### Output files
 
-When a recording stops, its files are saved automatically **next to `LandingRecorder.exe`**, with names based on the time the recording started:
+When a recording stops, its files are saved automatically to the **Save recordings to** folder from Settings (by default, **next to `LandingRecorder.exe`**), with names based on the time the recording started:
 
 | File | Contents |
 |---|---|
@@ -219,6 +219,7 @@ Changes in the Settings dialog apply only when you press **OK**, and are saved t
 
 - **Start below AGL (ft)**: auto-capture starts when the aircraft descends through this height above ground.
 - **Stop after touchdown (s)**: auto-capture stops this many seconds after touchdown.
+- **Save recordings to**: the folder where recordings (`.json` and `.mp4`) are saved automatically when they stop. **Load** and **Save** also open in this folder. By default it is the program's folder. Use **Browse…** to pick a folder, or clear the field to go back to the default. The folder is created when a recording starts, if it doesn't exist yet.
 
 **Plot lines**: see the next section.
 
@@ -271,7 +272,7 @@ When you load a recording, each line is matched against the recorded variables a
 | File | Purpose |
 |---|---|
 | `settings.json` | Your settings. Delete it to go back to the defaults. Any setting missing from the file uses its default value. |
-| `flight-*.json`, `flight-*.mp4` | Recordings (see [Output files](#output-files)). |
+| `flight-*.json`, `flight-*.mp4` | Recordings, unless another folder is set in Settings (see [Output files](#output-files)). |
 | `app.log` | Diagnostic log. It is kept across runs and rotated at 1 MB (`app-1.log` … `app-5.log`, newest has the highest number). Check it if video or a simvar doesn't record. |
 
 ---

@@ -105,12 +105,20 @@
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
                             </Grid.RowDefinitions>
                             <TextBlock Grid.Row="0" Grid.Column="0" Text="Start below AGL (ft)" />
                             <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding AutoStartHeightText, UpdateSourceTrigger=PropertyChanged}" />
                             <TextBlock Grid.Row="1" Grid.Column="0" Text="Stop after touchdown (s)" />
                             <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding AutoStopDelayText, UpdateSourceTrigger=PropertyChanged}" />
+                            <TextBlock Grid.Row="2" Grid.Column="0" Text="Save recordings to" />
+                            <DockPanel Grid.Row="2" Grid.Column="1">
+                                <Button DockPanel.Dock="Right" Content="Browse…" Padding="8,0" Margin="6,0,0,0" Click="BrowseRecordingsFolder_Click" />
+                                <TextBox Text="{Binding RecordingsFolder, UpdateSourceTrigger=PropertyChanged}"
+                                         ToolTip="{Binding RecordingsFolder}" />
+                            </DockPanel>
                         </Grid>
+                        <TextBlock Style="{StaticResource Hint}" Text="Recordings are saved here automatically when they stop, and Load/Save open here. Leave empty for the program's folder." />
                     </StackPanel>
                 </Border>
             </StackPanel>
